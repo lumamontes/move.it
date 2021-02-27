@@ -8,9 +8,7 @@ import { CountdownProvider } from '../contexts/CountdownContext';
 // todas as telas da aplicação irão incoportar o código adicionado no app
 function MyApp({ Component, pageProps }) {
     return (
-      <ChallengesProvider>
           <Component {...pageProps} />
-      </ChallengesProvider>
       )
 
   }
