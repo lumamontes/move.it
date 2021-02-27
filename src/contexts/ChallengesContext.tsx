@@ -1,4 +1,4 @@
-import {  createContext, useState, ReactNode  } from 'react';
+import {  createContext, useState, ReactNode, useEffect  } from 'react';
 import challenges from '../../challenges.json';
 
 interface Challenge {
@@ -16,7 +16,9 @@ interface ChallengesContextData {
     startNewChallenge: () => void;
     resetChallenge: () => void;
     levelUp: () => void;
+    completeChallenge: () => void;
 }
+
 
 interface ChallengesProviderProps {
     children: ReactNode;
@@ -33,6 +35,13 @@ export function ChallengesProvider ({children} : ChallengesProviderProps) {
     
     const experienceToNextLevel = Math.pow((level + 1 )* 4, 2)
 
+    // O use effect com o segundo parametro com um array vazio significa que essa função
+    //vai acontecer somente uma vez, quando esse componente for carregado em tela
+    useEffect(() => {
+        Notification.requestPermission();
+    }, [])
+
+
     function levelUp () {
         setLevel(level +1)
     }
@@ -42,10 +51,36 @@ export function ChallengesProvider ({children} : ChallengesProviderProps) {
         const challenge = challenges[randomChallengeIndex]
 
         setActiveChallenge(challenge)
+
+        new Audio('/notification.mp3').play();
+
+        if(Notification.permission ==='granted') {
+            new Notification('Novo desafio 😤'),{
+                body: `Valendo ${challenge.amount}xp!`
+            }
+        }
     }
 
     function resetChallenge() {
         setActiveChallenge(null)
+    }
+
+    function completeChallenge() {
+        if(!activeChallenge) {
+            return
+        }
+
+        const { amount } = activeChallenge;
+        let finalExperience = currentExperience + amount;
+
+        if(finalExperience >= experienceToNextLevel) {
+            finalExperience = finalExperience - experienceToNextLevel;
+            levelUp()
+        }
+
+        setCurrentExperience(finalExperience);
+        setActiveChallenge(null);
+        setChallengesCompleted(challengesCompleted +1);
     }
 
     return (
@@ -58,6 +93,7 @@ export function ChallengesProvider ({children} : ChallengesProviderProps) {
             startNewChallenge,
             activeChallenge,
             resetChallenge,
+            completeChallenge,
             experienceToNextLevel,
             }}>
             {children}
